@@ -1,11 +1,11 @@
 # 0x08 : 2D Animations (Project)
 
-## Assignment
+## Dawn To Dusk 
 
 ### Storyboard
 
 1. [Git URL](https://github.com/Anshul1811/CG_Project)
-2. Commit ID
+2. Commit ID : 8907dbd
 3. ![DawnToDusk](./102117146_102117154-0x08-DawnToDusk-storyboard.png)
 
 ### Final Project
