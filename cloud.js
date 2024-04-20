@@ -6,56 +6,124 @@
 //     }
 //     `;
 
+
 //     // Define fragment shader
 //     const fragmentShaderSource = `
-//     precision mediump float;
-//     uniform vec2 resolution;
-//     uniform float time;
-//     void main() {
-//         vec2 uv = gl_FragCoord.xy / resolution.xy;
+// precision mediump float;
+// uniform vec2 resolution;
+// uniform float time;
 
-//         // Calculate sun's position using a sine function for a curved path
-//         float t = mod(time, 1.0); // Ensure time repeats every 1 second
-//         float sunPositionX = mix(1.0, 0.0, t); // Move from 1.0 (right) to 0.0 (left)
-//         float sunPositionY = sin(t * 3.14) * 0.7 + 0.1; // Curved path with amplitude 0.4
+// const float BIRD_SIZE = 0.01; // Size of the bird
+// const float SUN_RADIUS = 0.08; // Adjust size of the sun
+// const float GLOW_RADIUS = 100.0; // Adjust size of the glow effect
+// const float SHINE_INTENSITY = 100.0;
+// const float SHINE_SPEED = 100.0;
 
-//         // Calculate cloud's position using a sine function for a horizontal movement
-//         float cloudPositionX = mod(time, 1.0); // Ensure clouds repeat every 1 second
-//         float cloudPositionY = uv.y; // Clouds move vertically with the screen
+// void main() {
+//     vec2 uv = gl_FragCoord.xy / resolution.xy;
 
-//         // Calculate distance from the cloud center
-//         float cloudDistanceX = abs(uv.x - cloudPositionX); // Horizontal distance from cloud center
-//         float cloudDistanceY = abs(uv.y - 0.8); // Vertical distance from cloud center
-//         float cloudDistance = sqrt(cloudDistanceX * cloudDistanceX + cloudDistanceY * cloudDistanceY);
+//     // Calculate sun's position using a sine function for a curved path
+//     float t = mod(time, 1.03); // Ensure time repeats every 1 second
+//     float sunPositionX = mix(1.0, 0.0, t); // Move from 1.0 (right) to 0.0 (left)
+//     float sunPositionY = sin(t * 3.14) * 0.6 + 0.1;
 
-//         // Check if the pixel is within the cloud area
-//         if (cloudDistance < 0.05) {
-//             gl_FragColor = vec4(0.7, 0.7, 0.7, 1.0); // Gray color for clouds
-//         }
-//         // If the pixel is within the sun's radius, color it yellow
-//         else if (distance(vec2(sunPositionX, sunPositionY), uv) < 0.05) {
-//             gl_FragColor = vec4(1.0, 0.85, 0.0, 1.0); // Yellow color for the sun
-//         }
-//         // Otherwise, color it sky-blue
-//         else {
-//             gl_FragColor = vec4(0.529, 0.808, 0.922, 1.0); // Sky-blue color for the background
-//         }
+//     // Calculate distance to the sun
+//     float distanceToSun = distance(uv, vec2(sunPositionX, sunPositionY));
 
-//         // Add birds
-// float birdPosX = mod(time, 1.0); // Ensure birds repeat every 1 second
-// float birdPosY = uv.y; // Birds move vertically with the screen
-// float birdDistanceX = abs(uv.x - birdPosX); // Horizontal distance from bird center
-// float birdDistanceY = abs(uv.y - 0.6); // Vertical distance from bird center
-// float birdDistance = sqrt(birdDistanceX * birdDistanceX + birdDistanceY * birdDistanceY);
-// if (birdDistance < 0.02) {
-//     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); // Black color for birds
-// }
+//     // Create gradient for the sun
+//     float sunGradient = smoothstep(SUN_RADIUS, SUN_RADIUS + 0.02, SUN_RADIUS - distanceToSun);
+
+//     // Add glow effect around the sun
+//     float glowGradient = smoothstep(GLOW_RADIUS, GLOW_RADIUS + 0.02, GLOW_RADIUS - distanceToSun);
+
+//     // Calculate shining effect
+//     float shineFactor = abs(sin(time * SHINE_SPEED) * 0.5 + 0.5); // Simulate light reflections
+//     float shiningIntensity = smoothstep(SUN_RADIUS - 0.02, SUN_RADIUS, distanceToSun) * shineFactor * SHINE_INTENSITY;
+
+//     // Combine gradients for sun, glow, and shining effect
+//     vec3 sunColor = vec3(1.0, 0.85, 0.0); // Base color for the sun
+//     vec3 glowColor = vec3(1.0, 0.85, 0.0) * 0.5; // Adjust glow color
+//     vec3 finalColor = mix(sunColor, glowColor, glowGradient) + shiningIntensity;
+
+//     // Render the sun with gradient, glow, and shining effect
+//     if (distanceToSun < SUN_RADIUS) {
+//         gl_FragColor = vec4(finalColor * sunGradient, 1.0);
+//     } else {
+//         gl_FragColor = vec4(0.0); // Transparent for pixels outside sun area
 //     }
-//     `;
+
+
+
+//     // Check if the sun is overlapping with the mountains
+//     bool overlappingMountains = (uv.y < 0.2 * uv.x + 0.3 && uv.y < 0.2 * (1.0 - uv.x) + 0.3) ||
+//                                  (uv.y < 0.2 * (uv.x - 0.5) + 0.3 && uv.y < 0.2 * (0.5 - uv.x) + 0.3) ||
+//                                  (uv.y < 0.2 * (uv.x + 0.5) + 0.3 && uv.y < 0.2 * (-0.5 - uv.x) + 0.3);
+
+//     // If the sun is not overlapping with the mountains, color it yellow
+//     if (!overlappingMountains) {
+//         // Render the sun instantly when it's not overlapping
+//         if (distance(vec2(sunPositionX, sunPositionY), uv) < 0.05) {
+//             gl_FragColor = vec4(1.0, 0.85, 0.0, 1.0); 
+//             return;
+//         }
+//     }
+
+//     // Color the mountains
+//     if (overlappingMountains) {
+//         gl_FragColor = vec4(0.0, 0.5, 0.0, 1.0); 
+//         return;
+//     }
+
+//     // Adjust color based on the sun's position
+//     float sunsetColorFactor = clamp(1.0 - sunPositionX * 4.0, 0.0, 4.0);
+//     vec3 skyColor = mix(vec3(0.529, 0.808, 0.922), vec3(0.8, 0.63, 0.5), sunsetColorFactor);
+//     gl_FragColor = vec4(skyColor, 1.0);
+
+//     // Calculate bird's position and draw the bird
+//     float birdPosX = mod(time * 3.0, 2.0); 
+//     float birdPosY = 0.6 + sin(time * 6.0) * 0.05; 
+//     float birdDistanceX = abs(uv.x - birdPosX); 
+//     float birdDistanceY = abs(uv.y - birdPosY); 
+//     float birdDistance = sqrt(birdDistanceX * birdDistanceX + birdDistanceY * birdDistanceY);
+
+//     // Check if the pixel is within the bird area
+//     for (int i = 0; i < 6; i++) {
+//         float birdPosX = mod(time * 2.0 + float(i) * 0.5, 1.0);
+//         float birdPosY = 0.6 + sin(time * 6.0 + float(i)) * 0.05; 
+//         birdPosX += float(i) * 0.3; 
+//         birdPosX = mod(birdPosX, 1.0); 
+//         float birdDistanceX = abs(uv.x - birdPosX); 
+//         float birdDistanceY = abs(uv.y - birdPosY); 
+//         float birdDistance = sqrt(birdDistanceX * birdDistanceX + birdDistanceY * birdDistanceY);
+
+//     if (birdDistance < BIRD_SIZE) {
+//         // Draw bird shape using a combination of conditions
+//         if (uv.y > birdPosY && uv.y < birdPosY + BIRD_SIZE) {
+//             // Body
+//             gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); // Black color for bird body
+//         } else if (uv.x > birdPosX && uv.x < birdPosX + BIRD_SIZE * 2.0 && uv.y > birdPosY - BIRD_SIZE * 0.5 && uv.y < birdPosY + BIRD_SIZE * 1.5) {
+//             // Wings
+//             gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); // Black color for bird wings
+//         } else if (uv.x > birdPosX + BIRD_SIZE * 2.0 && uv.x < birdPosX + BIRD_SIZE * 2.5 && uv.y > birdPosY - BIRD_SIZE * 0.2 && uv.y < birdPosY + BIRD_SIZE * 1.2) {
+//             // Head
+//             gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); // Black color for bird head
+//         } else if (uv.x > birdPosX - BIRD_SIZE * 0.2 && uv.x < birdPosX + BIRD_SIZE * 0.2 && uv.y > birdPosY - BIRD_SIZE * 0.5 && uv.y < birdPosY + BIRD_SIZE * 0.5) {
+//             // Tail
+//             gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); // Black color for bird tail
+//         } else {
+//             discard; // Discard pixels outside of bird shape
+//         }
+//     }
+// }
+// }
+// `;
+
+
 
 //     // Create WebGL context
 //     const canvas = document.getElementById('webglCanvas');
-//     const gl = canvas.getContext('webgl');
+
+//     const gl = canvas.getContext('webgl', { antialias: true });
 
 //     // Compile shaders
 //     function createShader(gl, type, source) {
@@ -79,10 +147,30 @@
 //     gl.linkProgram(shaderProgram);
 //     gl.useProgram(shaderProgram);
 
-//     // Create buffer
+//     // Create buffer for positions
 //     const positionBuffer = gl.createBuffer();
 //     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-//     const positions = [-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1];
+//     const positions = [-1, -1,
+//         1, -1, -1, 1, -1, 1,
+//         1, -1,
+//         1, 1,
+
+//         -1, -1, // Bottom-left (Mountain 1)
+//         -0.5, -2.0, // Peak (Mountain 1)
+//         0, -1, // Bottom-right (Mountain 1)
+
+//         -0.5, -1, // Bottom-left (Mountain 2)
+//         0, -2.0, // Peak (Mountain 2)
+//         0.5, -1, // Bottom-right (Mountain 2)
+
+//         0, -1, // Bottom-left (Mountain 3)
+//         0.5, -2.0, // Peak (Mountain 3)
+//         1, -1, // Bottom-right (Mountain 3)
+
+//         -1, -1, // Bottom-left (Mountain 4)
+//         -1.5, -2.0, // Peak (Mountain 4)
+//         -0.5, -1, // Bottom-right (Mountain 4)
+//     ];
 //     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
 //     // Set position attribute
@@ -111,7 +199,7 @@
 //         gl.clear(gl.COLOR_BUFFER_BIT);
 
 //         // Draw the rectangle, sun, and birds
-//         gl.drawArrays(gl.TRIANGLES, 0, 6);
+//         gl.drawArrays(gl.TRIANGLES, 0, 9);
 
 //         // Continue animation
 //         requestAnimationFrame(animate);
@@ -120,7 +208,6 @@
 //     // Start animation
 //     animate();
 // });
-
 document.addEventListener("DOMContentLoaded", function() {
     const vertexShaderSource = `
     attribute vec4 a_position;
@@ -129,191 +216,131 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     `;
 
-
-    // Define fragment shader
-    //     const fragmentShaderSource = `
-    // precision mediump float;
-    // uniform vec2 resolution;
-    // uniform float time;
-    // void main() {
-    //     vec2 uv = gl_FragCoord.xy / resolution.xy;
-
-    //     // Calculate sun's position using a sine function for a curved path
-    //     float t = mod(time, 1.0); // Ensure time repeats every 1 second
-    //     float sunPositionX = mix(1.0, 0.0, t); // Move from 1.0 (right) to 0.0 (left)
-    //     float sunPositionY = sin(t * 3.14) * 0.7 + 0.1; // Curved path with amplitude 0.4
-
-    //     // Calculate cloud's position using a sine function for a horizontal movement
-    //     float cloudPositionX = mod(time, 1.0); // Ensure clouds repeat every 1 second
-    //     float cloudPositionY = uv.y; // Clouds move vertically with the screen
-
-    //     // Calculate distance from the cloud center
-    //     float cloudDistanceX = abs(uv.x - cloudPositionX); // Horizontal distance from cloud center
-    //     float cloudDistanceY = abs(uv.y - 0.8); // Vertical distance from cloud center
-    //     float cloudDistance = sqrt(cloudDistanceX * cloudDistanceX + cloudDistanceY * cloudDistanceY);
-
-    //     // Check if the pixel is within the cloud area
-    //     if (cloudDistance < 0.05) {
-    //         gl_FragColor = vec4(0.7, 0.7, 0.7, 1.0); // Gray color for clouds
-    //     }
-    //     // If the pixel is within the sun's radius, color it yellow
-    //     else if (distance(vec2(sunPositionX, sunPositionY), uv) < 0.05) {
-    //         gl_FragColor = vec4(1.0, 0.85, 0.0, 1.0); // Yellow color for the sun
-    //     }
-    //     // Color the mountains
-    //     else if ((uv.y < 0.2 * uv.x + 0.3 && uv.y < 0.2 * (1.0 - uv.x) + 0.3) ||
-    //              (uv.y < 0.2 * (uv.x - 0.5) + 0.3 && uv.y < 0.2 * (0.5 - uv.x) + 0.3) ||
-    //              (uv.y < 0.2 * (uv.x - 1.0) + 0.3 && uv.y < 0.2 * (1.5 - uv.x) + 0.3) ||
-    //              (uv.y < 0.2 * (uv.x + 0.5) + 0.3 && uv.y < 0.2 * (-0.5 - uv.x) + 0.3)) {
-    //         gl_FragColor = vec4(0.0, 0.5, 0.0, 1.0); // Green color for mountains
-    //     }
-    //     // Otherwise, color it dark blue during nighttime
-    //     else if (sunPositionX < 0.2) {
-    //         // Simulate twinkling stars
-    //         float stars = fract(sin(dot(gl_FragCoord.xy ,vec2(12.9898,78.233))) * 43758.5453);
-    //         if (stars > 0.998) {
-    //             gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0); // White color for stars
-    //         } else {
-    //             gl_FragColor = vec4(0.0, 0.0, 0.2, 1.0); // Dark blue color for night sky
-    //         }
-    //     }
-    //     // Otherwise, color it sky-blue during daytime
-    //     else {
-    //         gl_FragColor = vec4(0.529, 0.808, 0.922, 1.0); // Sky-blue color for the background
-    //     }
-
-    //     float birdPosX = mod(time, 1.0); // Ensure birds repeat every 1 second
-    //     float birdPosY = uv.y; // Birds move vertically with the screen
-    //     float birdDistanceX = abs(uv.x - birdPosX); // Horizontal distance from bird center
-    //     float birdDistanceY = abs(uv.y - 0.6); // Vertical distance from bird center
-    //     float birdDistance = sqrt(birdDistanceX * birdDistanceX + birdDistanceY * birdDistanceY);
-    //     if (birdDistance < 0.02) {
-    //         gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); // Black color for birds
-    //     }
-    // }
-    // `;
-    //     const fragmentShaderSource = `
-    // precision mediump float;
-    // uniform vec2 resolution;
-    // uniform float time;
-    // void main() {
-    //     vec2 uv = gl_FragCoord.xy / resolution.xy;
-
-    //     // Calculate sun's position using a sine function for a curved path
-    //     float t = mod(time, 1.0); // Ensure time repeats every 1 second
-    //     float sunPositionX = mix(1.0, 0.0, t); // Move from 1.0 (right) to 0.0 (left)
-    //     float sunPositionY = sin(t * 3.14) * 0.7 + 0.1; // Curved path with amplitude 0.4
-
-    //     // Calculate cloud's position using a sine function for a horizontal movement
-    //     float cloudPositionX = mod(time, 1.0); // Ensure clouds repeat every 1 second
-    //     float cloudPositionY = uv.y; // Clouds move vertically with the screen
-
-    //     // Calculate distance from the cloud center
-    //     float cloudDistanceX = abs(uv.x - cloudPositionX); // Horizontal distance from cloud center
-    //     float cloudDistanceY = abs(uv.y - 0.8); // Vertical distance from cloud center
-    //     float cloudDistance = sqrt(cloudDistanceX * cloudDistanceX + cloudDistanceY * cloudDistanceY);
-
-    //     // Check if the pixel is within the cloud area
-    //     if (cloudDistance < 0.05) {
-    //         gl_FragColor = vec4(0.7, 0.7, 0.7, 1.0); // Gray color for clouds
-    //     }
-    //     // If the pixel is within the sun's radius, color it yellow
-    //     else if (distance(vec2(sunPositionX, sunPositionY), uv) < 0.05) {
-    //         gl_FragColor = vec4(1.0, 0.85, 0.0, 1.0); // Yellow color for the sun
-    //     }
-    //     // Color the mountains
-    //     else if ((uv.y < 0.2 * uv.x + 0.3 && uv.y < 0.2 * (1.0 - uv.x) + 0.3) ||
-    //              (uv.y < 0.2 * (uv.x - 0.5) + 0.3 && uv.y < 0.2 * (0.5 - uv.x) + 0.3) ||
-    //              (uv.y < 0.2 * (uv.x - 1.0) + 0.3 && uv.y < 0.2 * (1.5 - uv.x) + 0.3) ||
-    //              (uv.y < 0.2 * (uv.x + 0.5) + 0.3 && uv.y < 0.2 * (-0.5 - uv.x) + 0.3)) {
-    //         gl_FragColor = vec4(0.0, 0.5, 0.0, 1.0); // Green color for mountains
-    //     }
-    //     // Color it dark blue during nighttime
-    //     else if (sunPositionX < 0.07) {
-    //         // Simulate twinkling stars
-    //         float stars = fract(sin(dot(gl_FragCoord.xy ,vec2(12.9898,78.233))) * 43758.5453);
-    //         if (stars > 0.998) {
-    //             gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0); // White color for stars
-    //         } else {
-    //             gl_FragColor = vec4(0.0, 0.0, 0.2, 1.0); // Dark blue color for night sky
-    //         }
-    //     }
-    //     // Otherwise, color it sky-blue during daytime
-    //     else {
-    //         gl_FragColor = vec4(0.529, 0.808, 0.922, 1.0); // Sky-blue color for the background
-    //     }
-
-    //     // Birds
-    //     float birdPosX = mod(time, 1.0); // Ensure birds repeat every 1 second
-    //     float birdPosY = uv.y; // Birds move vertically with the screen
-    //     float birdDistanceX = abs(uv.x - birdPosX); // Horizontal distance from bird center
-    //     float birdDistanceY = abs(uv.y - 0.6); // Vertical distance from bird center
-    //     float birdDistance = sqrt(birdDistanceX * birdDistanceX + birdDistanceY * birdDistanceY);
-    //     if (birdDistance < 0.02) {
-    //         gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); // Black color for birds
-    //     }
-    // }
-    // `;
     // Define fragment shader
     const fragmentShaderSource = `
 precision mediump float;
 uniform vec2 resolution;
 uniform float time;
+
+const float BIRD_SIZE = 0.01; // Size of the bird
+const float SUN_RADIUS = 0.08; // Adjust size of the sun
+const float GLOW_RADIUS = 100.0; // Adjust size of the glow effect
+const float SHINE_INTENSITY = 100.0;
+const float SHINE_SPEED = 100.0;
+
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution.xy;
 
     // Calculate sun's position using a sine function for a curved path
-    float t = mod(time, 1.0); // Ensure time repeats every 1 second
+    float t = mod(time, 1.03); // Ensure time repeats every 1 second
     float sunPositionX = mix(1.0, 0.0, t); // Move from 1.0 (right) to 0.0 (left)
-    float sunPositionY = sin(t * 3.14) * 0.7 + 0.1; // Curved path with amplitude 0.4
+    float sunPositionY = sin(t * 3.14) * 0.6 + 0.1;
 
-    // Calculate cloud's position using a sine function for a horizontal movement
-    float cloudPositionX = mod(time, 1.0); // Ensure clouds repeat every 1 second
-    float cloudPositionY = uv.y; // Clouds move vertically with the screen
+    // Calculate distance to the sun
+    float distanceToSun = distance(uv, vec2(sunPositionX, sunPositionY));
 
-    // Calculate distance from the cloud center
-    float cloudDistanceX = abs(uv.x - cloudPositionX); // Horizontal distance from cloud center
-    float cloudDistanceY = abs(uv.y - 0.8); // Vertical distance from cloud center
-    float cloudDistance = sqrt(cloudDistanceX * cloudDistanceX + cloudDistanceY * cloudDistanceY);
+    // Create gradient for the sun
+    float sunGradient = smoothstep(SUN_RADIUS, SUN_RADIUS + 0.02, SUN_RADIUS - distanceToSun);
 
-    // Check if the pixel is within the cloud area
-    if (cloudDistance < 0.05) {
-        gl_FragColor = vec4(0.7, 0.7, 0.7, 1.0); // Gray color for clouds
+    // Add glow effect around the sun
+    float glowGradient = smoothstep(GLOW_RADIUS, GLOW_RADIUS + 0.02, GLOW_RADIUS - distanceToSun);
+
+    // Calculate shining effect
+    float shineFactor = abs(sin(time * SHINE_SPEED) * 0.5 + 0.5); // Simulate light reflections
+    float shiningIntensity = smoothstep(SUN_RADIUS - 0.02, SUN_RADIUS, distanceToSun) * shineFactor * SHINE_INTENSITY;
+
+    // Combine gradients for sun, glow, and shining effect
+    vec3 sunColor = vec3(1.0, 0.85, 0.0); // Base color for the sun
+    vec3 glowColor = vec3(1.0, 0.85, 0.0) * 0.5; // Adjust glow color
+    vec3 finalColor = mix(sunColor, glowColor, glowGradient) + shiningIntensity;
+
+    // Render the sun with gradient, glow, and shining effect
+    if (distanceToSun < SUN_RADIUS) {
+        gl_FragColor = vec4(finalColor * sunGradient, 1.0);
+    } else {
+        gl_FragColor = vec4(0.0); // Transparent for pixels outside sun area
     }
-    // If the pixel is within the sun's radius, color it yellow
-    else if (distance(vec2(sunPositionX, sunPositionY), uv) < 0.05) {
-        gl_FragColor = vec4(1.0, 0.85, 0.0, 1.0); // Yellow color for the sun
+
+    // Check if the sun is overlapping with the mountains
+    bool overlappingMountains = (uv.y < 0.2 * uv.x + 0.3 && uv.y < 0.2 * (1.0 - uv.x) + 0.3) ||
+                                 (uv.y < 0.2 * (uv.x - 0.5) + 0.3 && uv.y < 0.2 * (0.5 - uv.x) + 0.3) ||
+                                 (uv.y < 0.2 * (uv.x + 0.5) + 0.3 && uv.y < 0.2 * (-0.5 - uv.x) + 0.3);
+
+    // If the sun is not overlapping with the mountains, color it yellow
+    if (!overlappingMountains) {
+        // Render the sun instantly when it's not overlapping
+        if (distance(vec2(sunPositionX, sunPositionY), uv) < 0.05) {
+            gl_FragColor = vec4(1.0, 0.85, 0.0, 1.0); 
+            return;
+        }
     }
+
     // Color the mountains
-    else if ((uv.y < 0.2 * uv.x + 0.3 && uv.y < 0.2 * (1.0 - uv.x) + 0.3) ||
-             (uv.y < 0.2 * (uv.x - 0.5) + 0.3 && uv.y < 0.2 * (0.5 - uv.x) + 0.3) ||
-             (uv.y < 0.2 * (uv.x - 1.0) + 0.3 && uv.y < 0.2 * (1.5 - uv.x) + 0.3) ||
-             (uv.y < 0.2 * (uv.x + 0.5) + 0.3 && uv.y < 0.2 * (-0.5 - uv.x) + 0.3)) {
-        gl_FragColor = vec4(0.0, 0.5, 0.0, 1.0); // Green color for mountains
-    }
-    // Otherwise, color it sky-blue
-    else {
-        // Adjust color based on the sun's position
-        float sunsetColorFactor = clamp(1.0 - sunPositionX * 2.0, 0.0, 1.0);
-        vec3 skyColor = mix(vec3(0.529, 0.808, 0.922), vec3(0.9, 0.6, 0.4), sunsetColorFactor);
-        gl_FragColor = vec4(skyColor, 1.0); // Sky-blue color for the background
+    if (overlappingMountains) {
+        gl_FragColor = vec4(0.0, 0.5, 0.0, 1.0); 
+        return;
     }
 
-    float birdPosX = mod(time, 1.0); // Ensure birds repeat every 1 second
-    float birdPosY = uv.y; // Birds move vertically with the screen
-    float birdDistanceX = abs(uv.x - birdPosX); // Horizontal distance from bird center
-    float birdDistanceY = abs(uv.y - 0.6); // Vertical distance from bird center
+    // Adjust color based on the sun's position
+    float sunsetColorFactor = clamp(1.0 - sunPositionX * 4.0, 0.0, 4.0);
+    vec3 skyColor;
+
+    if (sunsetColorFactor < 1.0) {
+        // Daytime colors
+        skyColor = mix(vec3(0.529, 0.808, 0.922), vec3(0.8, 0.63, 0.5), sunsetColorFactor);
+    } else {
+        // Evening colors
+        float eveningFactor = (sunsetColorFactor - 1.0) * 2.0; // Scale factor for evening colors
+        vec3 eveningSkyColor = mix(vec3(0.8, 0.63, 0.5), vec3(0.545, 0.27, 0.074), eveningFactor); // Blend between orange and dark orange
+        skyColor = mix(vec3(0.8, 0.63, 0.5), eveningSkyColor, glowGradient); // Transition from daytime to evening
+    }
+    
+
+    gl_FragColor = vec4(skyColor, 1.0);
+
+    // Calculate bird's position and draw the bird
+    float birdPosX = mod(time * 3.0, 2.0); 
+    float birdPosY = 0.6 + sin(time * 6.0) * 0.05; 
+    float birdDistanceX = abs(uv.x - birdPosX); 
+    float birdDistanceY = abs(uv.y - birdPosY); 
     float birdDistance = sqrt(birdDistanceX * birdDistanceX + birdDistanceY * birdDistanceY);
-    if (birdDistance < 0.02) {
-        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); // Black color for birds
+
+    // Check if the pixel is within the bird area
+    for (int i = 0; i < 6; i++) {
+        float birdPosX = mod(time * 2.0 + float(i) * 0.5, 1.0);
+        float birdPosY = 0.6 + sin(time * 6.0 + float(i)) * 0.05; 
+        birdPosX += float(i) * 0.3; 
+        birdPosX = mod(birdPosX, 1.0); 
+        float birdDistanceX = abs(uv.x - birdPosX); 
+        float birdDistanceY = abs(uv.y - birdPosY); 
+        float birdDistance = sqrt(birdDistanceX * birdDistanceX + birdDistanceY * birdDistanceY);
+
+        if (birdDistance < BIRD_SIZE) {
+            // Draw bird shape using a combination of conditions
+            if (uv.y > birdPosY && uv.y < birdPosY + BIRD_SIZE) {
+                // Body
+                gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); // Black color for bird body
+            } else if (uv.x > birdPosX && uv.x < birdPosX + BIRD_SIZE * 2.0 && uv.y > birdPosY - BIRD_SIZE * 0.5 && uv.y < birdPosY + BIRD_SIZE * 1.5) {
+                // Wings
+                gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); // Black color for bird wings
+            } else if (uv.x > birdPosX + BIRD_SIZE * 2.0 && uv.x < birdPosX + BIRD_SIZE * 2.5 && uv.y > birdPosY - BIRD_SIZE * 0.2 && uv.y < birdPosY + BIRD_SIZE * 1.2) {
+                // Head
+                gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); // Black color for bird head
+            } else if (uv.x > birdPosX - BIRD_SIZE * 0.2 && uv.x < birdPosX + BIRD_SIZE * 0.2 && uv.y > birdPosY - BIRD_SIZE * 0.5 && uv.y < birdPosY + BIRD_SIZE * 0.5) {
+                // Tail
+                gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); // Black color for bird tail
+            } else {
+                discard; // Discard pixels outside of bird shape
+            }
+        }
     }
 }
 `;
 
-
     // Create WebGL context
     const canvas = document.getElementById('webglCanvas');
-    const gl = canvas.getContext('webgl');
+
+    const gl = canvas.getContext('webgl', { antialias: true });
 
     // Compile shaders
     function createShader(gl, type, source) {
@@ -340,23 +367,25 @@ void main() {
     // Create buffer for positions
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    const positions = [-1, -1, // Bottom-left
-        1, -1, // Bottom-right
-        -1, 1, // Top-left
-        -1, 1, // Top-left
-        1, -1, // Bottom-right
-        1, 1, // Top-right
+    const positions = [-1, -1,
+        1, -1, -1, 1, -1, 1,
+        1, -1,
+        1, 1,
+
         -1, -1, // Bottom-left (Mountain 1)
-        -0.5, 0.5, // Peak (Mountain 1)
+        -0.5, -2.0, // Peak (Mountain 1)
         0, -1, // Bottom-right (Mountain 1)
+
         -0.5, -1, // Bottom-left (Mountain 2)
-        0, 0, // Peak (Mountain 2)
+        0, -2.0, // Peak (Mountain 2)
         0.5, -1, // Bottom-right (Mountain 2)
+
         0, -1, // Bottom-left (Mountain 3)
-        0.5, 0.5, // Peak (Mountain 3)
+        0.5, -2.0, // Peak (Mountain 3)
         1, -1, // Bottom-right (Mountain 3)
+
         -1, -1, // Bottom-left (Mountain 4)
-        -1.5, 0.5, // Peak (Mountain 4)
+        -1.5, -2.0, // Peak (Mountain 4)
         -0.5, -1, // Bottom-right (Mountain 4)
     ];
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
@@ -387,7 +416,7 @@ void main() {
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         // Draw the rectangle, sun, and birds
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        gl.drawArrays(gl.TRIANGLES, 0, 9);
 
         // Continue animation
         requestAnimationFrame(animate);
