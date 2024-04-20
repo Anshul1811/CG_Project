@@ -128,7 +128,7 @@ void main() {
 
     // Create WebGL context
     const canvas = document.getElementById('webglCanvas');
-    const { width: W, height: H } = canvas.getBoundingClientRect()
+    const { width: W, height: H } = canvas.getBoundingClientRect() //for blurimage line131-133
     canvas.width = W
     canvas.height = H
     const gl = canvas.getContext('webgl', { antialias: true });
