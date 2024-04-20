@@ -213,6 +213,40 @@ void main() {
         requestAnimationFrame(animate);
     }
 
+    function renderCanvas() {
+        updateTime();
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.TRIANGLES, 0, 9);
+    }
+
+    // Function to save canvas content as an image
+    function saveCanvasAsImage() {
+        renderCanvas();
+        const image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+        const link = document.createElement('a');
+        link.download = 'dawn_to_dusk.png';
+        link.href = image;
+        link.click();
+    }
+
+    // Add a button to download the canvas content as an image
+    // const downloadButton = document.getElementById('download-btn');
+    // downloadButton.textContent = 'Download';
+    // downloadButton.addEventListener('click', saveCanvasAsImage);
+    // document.body.appendChild(downloadButton);
+    const downloadButton = document.getElementById('download-btn');
+    downloadButton.textContent = 'Download';
+    downloadButton.addEventListener('click', saveCanvasAsImage);
+    downloadButton.style.backgroundImage = 'url("downloads.png")';
+    downloadButton.style.backgroundRepeat = 'no-repeat';
+    downloadButton.style.backgroundPosition = 'left center'; // Adjust position as needed
+    downloadButton.style.backgroundSize = 'contain'; // Adjust size as needed
+    downloadButton.style.backgroundSize = '20px 20px';
+    downloadButton.style.paddingRight = '20px';
+    downloadButton.style.paddingLeft = '30px';
+    document.body.appendChild(downloadButton);
+
+
     // Start animation
     animate();
 });

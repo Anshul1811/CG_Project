@@ -23,7 +23,7 @@
             height: 90%;
             padding: 5px;
             align-items: center;
-            margin: 100px;
+            margin: 80px;
             display: block;
             text-align: center;
         }
@@ -73,20 +73,6 @@
         <canvas id="webglCanvas"></canvas>
         <button id="download-btn"><img src="downloads.png" alt="Download">Download</button>
         <script src="cloud.js"></script>
-        <script>
-            document.getElementById('download-btn').addEventListener('click', function() {
-                var canvas = document.querySelector('canvas');
-                var dataURL = canvas.toDataURL('image/png');
-
-                // Introduce a delay to allow the WebGL animation to render properly
-                setTimeout(function() {
-                    var link = document.createElement('a');
-                    link.download = 'dawntodusk_image.png';
-                    link.href = dataURL;
-                    link.click();
-                }, 3000); // Adjust the delay time as needed (in milliseconds)
-            });
-        </script>
 
 </body>
 
