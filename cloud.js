@@ -128,7 +128,9 @@ void main() {
 
     // Create WebGL context
     const canvas = document.getElementById('webglCanvas');
-
+    const { width: W, height: H } = canvas.getBoundingClientRect()
+    canvas.width = W
+    canvas.height = H
     const gl = canvas.getContext('webgl', { antialias: true });
 
     // Compile shaders
