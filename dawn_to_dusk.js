@@ -31,16 +31,18 @@ document.addEventListener("DOMContentLoaded", function() {
     
         // Interpolate between light and dark green based on the y-coordinate of the pixel
         float gradient = smoothstep(minHeight, maxHeight, uv.y);
-        return mix(vec3(0.0, 0.5, 0.0), vec3(0.7, 1.2, 0.0), gradient);
+        return mix(vec3(0.0, 0.5, 0.0), vec3(0.8, 1.0, 0.2), gradient);
     }
     
     void main() {
         vec2 uv = gl_FragCoord.xy / resolution.xy;
+        
     
         // Calculate sun's position using a sine function for a curved path
         float t = mod(time, 1.03); // Ensure time repeats every 1 second
         float sunPositionX = mix(1.0, 0.0, t); // Move from 1.0 (right) to 0.0 (left)
         float sunPositionY = sin(t * 3.14) * 0.6 + 0.1;
+
     
         // Calculate distance to the sun
         float distanceToSun = distance(uv, vec2(sunPositionX, sunPositionY));
@@ -122,13 +124,13 @@ document.addEventListener("DOMContentLoaded", function() {
         
             if (birdDistance < BIRD_SIZE) {
         
-                if (uv.y+0.9> birdPosY && uv.y+0.9 < birdPosY + BIRD_SIZE) {
+                if (uv.y> birdPosY && uv.y< birdPosY + BIRD_SIZE) {
                     // Body
                     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); // Black color for bird body
                 } else if (uv.x > birdPosX && uv.x < birdPosX + BIRD_SIZE * 10.0 && uv.y > birdPosY - BIRD_SIZE * 0.5 && uv.y < birdPosY + BIRD_SIZE * 1.5) {
                     // Wings
                     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); // Black color for bird wings
-                } else if (uv.x +1.0> birdPosX + BIRD_SIZE * 2.0 && uv.x < birdPosX + BIRD_SIZE * 2.5 && uv.y > birdPosY - BIRD_SIZE * 0.2 && uv.y < birdPosY + BIRD_SIZE * 1.2) {
+                } else if (uv.x > birdPosX + BIRD_SIZE * 2.0 && uv.x < birdPosX + BIRD_SIZE * 2.5 && uv.y > birdPosY - BIRD_SIZE * 0.2 && uv.y < birdPosY + BIRD_SIZE * 1.2) {
                     // Head
                     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); // Black color for bird head
                 } 
@@ -144,9 +146,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Create WebGL context
     const canvas = document.getElementById('webglCanvas');
-    const { width: W, height: H } = canvas.getBoundingClientRect() //for blurimage line131-133
-    canvas.width = W
-    canvas.height = H
+    // const { width: W, height: H } = canvas.getBoundingClientRect() //for blurimage line131-133
+    // canvas.width = W
+    // canvas.height = H
     const gl = canvas.getContext('webgl', { antialias: true });
 
     // Compile shaders
@@ -179,21 +181,18 @@ document.addEventListener("DOMContentLoaded", function() {
         1, -1,
         1, 1,
 
-        -1, -1, // Bottom-left (Mountain 1)
-        -0.5, -2.0, // Peak (Mountain 1)
-        0, -1, // Bottom-right (Mountain 1)
+        -1, -1, -0.5, -2.0,
+        0, -1,
 
-        -0.5, -1, // Bottom-left (Mountain 2)
-        0, -2.0, // Peak (Mountain 2)
-        0.5, -1, // Bottom-right (Mountain 2)
+        -0.5, -1,
+        0, -2.0,
+        0.5, -1,
 
-        0, -1, // Bottom-left (Mountain 3)
-        0.5, -2.0, // Peak (Mountain 3)
-        1, -1, // Bottom-right (Mountain 3)
+        0, -1,
+        0.5, -2.0,
+        1, -1,
 
-        -1, -1, // Bottom-left (Mountain 4)
-        -1.5, -2.0, // Peak (Mountain 4)
-        -0.5, -1, // Bottom-right (Mountain 4)
+        -1, -1, -0.5, -1,
     ];
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
@@ -202,11 +201,11 @@ document.addEventListener("DOMContentLoaded", function() {
     gl.enableVertexAttribArray(positionAttributeLocation);
     gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
 
-    // Set resolution uniform
+
     const resolutionUniformLocation = gl.getUniformLocation(shaderProgram, 'resolution');
     gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
 
-    // Set time uniform
+
     let startTime = Date.now();
 
     function updateTime() {
@@ -252,8 +251,8 @@ document.addEventListener("DOMContentLoaded", function() {
     downloadButton.addEventListener('click', saveCanvasAsImage);
     downloadButton.style.backgroundImage = 'url("downloads.png")';
     downloadButton.style.backgroundRepeat = 'no-repeat';
-    downloadButton.style.backgroundPosition = 'left center'; // Adjust position as needed
-    downloadButton.style.backgroundSize = 'contain'; // Adjust size as needed
+    downloadButton.style.backgroundPosition = 'left center';
+    downloadButton.style.backgroundSize = 'contain';
     downloadButton.style.backgroundSize = '20px 20px';
     downloadButton.style.paddingRight = '20px';
     downloadButton.style.paddingLeft = '30px';
