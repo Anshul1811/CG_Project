@@ -210,7 +210,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function updateTime() {
         let currentTime = Date.now();
-        let elapsedTime = (currentTime - startTime) / 5000; // Convert to seconds
+        let elapsedTime = (currentTime - startTime) / 9000; // Convert to seconds
         gl.uniform1f(gl.getUniformLocation(shaderProgram, 'time'), elapsedTime);
     }
 
