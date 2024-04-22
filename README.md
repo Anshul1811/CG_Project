@@ -10,8 +10,8 @@
 
 ### Final Project
 
-1. Git URL
+1. [Git URL](https://github.com/Anshul1811/CG_Project)
 2. Commit ID
-3. Storyboard (One image containing the storyboard)
-4. Teaser
-5. Video Link
+3. ![Storyboard](./storyboard/102117146_102117154-0x08-DawnToDusk-storyboard.png)
+4. ![Teaser](./assets/teaser.png)
+5. ![Video Link](https://drive.google.com/drive/folders/1He1WEZSr8CprwdHKminVqwxNEjQGaDL9?usp=sharing)
